@@ -1,38 +1,36 @@
+from collections import namedtuple
+
+
+Computer = namedtuple("Computer", "counter acc")
+Instruction = namedtuple("Instruction", "oper arg")
+
+
 def parse_input(inp):
-    return [(instr, int(val)) for instr, val in  [i.strip().split(" ") for i in inp]]
+    return [Instruction(instr, int(val)) for instr, val in  [i.strip().split(" ") for i in inp]]
 
 
-def run(instr):
-    acc  = 0
-    pos = 0
+def run(program):
+    operations = {
+        'acc': lambda c, x: Computer(counter=c.counter + 1, acc=c.acc + x),
+        'jmp': lambda c, x: Computer(counter=c.counter + x, acc=c.acc),
+        'nop': lambda c, x: Computer(counter=c.counter + 1, acc=c.acc),
+    }
+    computer = Computer(0, 0)
     visited = set()
-    while pos not in visited and pos < len(instr):
-        visited.add(pos)
-        if instr[pos][0] == 'acc':
-            acc += instr[pos][1]
-            pos += 1
-        elif instr[pos][0] == 'jmp':
-            pos += instr[pos][1]
-        else:
-            pos += 1
-    return acc, pos
+    while computer.counter not in visited and computer.counter < len(program):
+        visited.add(computer.counter)
+        instr = program[computer.counter]
+        computer = operations[instr.oper](computer, instr.arg)
+    return computer
 
 
 def p1(inp):
-    return run(inp)[0]
+    return run(inp).acc
 
 
 def p2(inp):
-    for i, instr in enumerate(inp):
-        if instr[0] == 'jmp':
-            new_instr = inp[:i] + [('nop', instr[1])] + inp[i+1:]
-        elif instr[0] == 'nop':
-            new_instr = inp[:i] + [('jmp', instr[1])] + inp[i+1:]
-        else:
-            continue
-        acc, pos = run(new_instr)
-        if pos == len(inp):
-            return acc
+    swap = lambda i, prog: prog[:i] + [Instruction('nop' if prog[i].oper == 'jmp' else 'jmp', prog[i].arg)] + prog[i+1:]
+    return next(filter(lambda c: c.counter == len(inp), [run(swap(i, inp)) for i, instr in enumerate(inp) if instr.oper != 'acc'])).acc
 
 
 if __name__ == "__main__":
