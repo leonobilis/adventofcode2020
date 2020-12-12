@@ -77,8 +77,6 @@ def p2(inp):
     return abs(pos.x) + abs(pos.y)
 
 if __name__ == "__main__":
-    ex = [('F', 10), ('N', 3), ('F', 7), ('R', 90), ('F', 11), ('N', 20)]
-    print(p2(ex))
     with open('input.txt', "r") as f:
         inp = parse_input(f.readlines())
         print(f"Part 1: {p1(inp)}")
